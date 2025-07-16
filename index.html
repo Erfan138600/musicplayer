@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موزیک پلیر حرفه‌ای</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /*  عرفان علیخانی برنامه نویس وب */
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 1s ease-in-out;
+        }
+
+        .player-container {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .progress-bar {
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .progress-bar::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .progress-bar::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .volume-bar {
+            appearance: none;
+            width: 100px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .volume-bar::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-bar::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-control {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-control:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+        }
+
+        .btn-play:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: scale(1.05);
+        }
+
+        .track-info {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .playlist-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .playlist-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .playlist-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .visualizer {
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            height: 60px;
+            gap: 2px;
+        }
+
+        .visualizer-bar {
+            background: linear-gradient(to top, #667eea, #764ba2);
+            width: 3px;
+            min-height: 2px;
+            border-radius: 1px;
+            animation: pulse 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scaleY(0.3); }
+            100% { transform: scaleY(1); }
+        }
+
+        .theme-selector {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            border-color: rgba(255, 255, 255, 0.7);
+            transform: scale(1.1);
+        }
+
+        .speed-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .spinning {
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .wave {
+            animation: wave 2s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Background Images Array -->
+    <script>
+        const backgrounds = [
+            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            'https://images.unsplash.com/photo-1464822759844-d150baec0494?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            'https://images.unsplash.com/photo-1426604966848-d7adac402bff?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+        ];
+    </script>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="notificationText"></span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-6xl font-bold text-white text-shadow mb-2">
+                <i class="fas fa-music text-purple-400"></i>
+                موزیک پلیر حرفه‌ای
+            </h1>
+            <p class="text-xl text-gray-200 text-shadow">تجربه‌ای متفاوت از شنیدن موزیک/erfan alikhani</p>
+        </header>
+
+        <!-- Main Player -->
+        <div class="max-w-4xl mx-auto">
+            <!-- Upload Area -->
+            <div class="upload-area rounded-2xl p-8 mb-6 text-center fade-in" id="uploadArea">
+                <div class="mb-4">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-white mb-4"></i>
+                    <h3 class="text-xl font-semibold text-white mb-2">آپلود موزیک</h3>
+                    <p class="text-gray-300">فایل موزیک را بکشید و رها کنید یا کلیک کنید</p>
+                </div>
+                
+                <input type="file" id="fileInput" accept="audio/*" multiple class="hidden">
+                <button onclick="document.getElementById('fileInput').click()" class="btn-control px-6 py-3 rounded-full mr-4">
+                    <i class="fas fa-folder-open mr-2"></i>
+                    انتخاب فایل
+                </button>
+                
+                <div class="mt-4">
+                    <input type="text" id="urlInput" placeholder="یا لینک موزیک را اینجا بنویسید..." 
+                           class="search-box px-4 py-2 rounded-full w-full max-w-md mr-4">
+                    <button onclick="addFromUrl()" class="btn-control px-6 py-3 rounded-full">
+                        <i class="fas fa-link mr-2"></i>
+                        افزودن از لینک
+                    </button>
+                </div>
+            </div>
+
+            <!-- Player Interface -->
+            <div class="player-container rounded-2xl p-6 mb-6 fade-in">
+                <!-- Current Track Info -->
+                <div class="track-info rounded-xl p-4 mb-6">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-music text-white text-2xl spinning" id="trackIcon"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-white mb-1" id="trackTitle">هیچ موزیکی انتخاب نشده</h3>
+                            <p class="text-gray-300" id="trackArtist">-</p>
+                        </div>
+                        <div class="visualizer">
+                            <div class="visualizer-bar wave" style="animation-delay: 0s;"></div>
+                            <div class="visualizer-bar wave" style="animation-delay: 0.1s;"></div>
+                            <div class="visualizer-bar wave" style="animation-delay: 0.2s;"></div>
+                            <div class="visualizer-bar wave" style="animation-delay: 0.3s;"></div>
+                            <div class="visualizer-bar wave" style="animation-delay: 0.4s;"></div>
+                            <div class="visualizer-bar wave" style="animation-delay: 0.5s;"></div>
+                            <div class="visualizer-bar wave" style="animation-delay: 0.6s;"></div>
+                            <div class="visualizer-bar wave" style="animation-delay: 0.7s;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm text-gray-300 mb-2">
+                        <span id="currentTime">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+                    <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100">
+                </div>
+
+                <!-- Main Controls -->
+                <div class="flex justify-center items-center gap-4 mb-6">
+                    <button onclick="previousTrack()" class="btn-control w-12 h-12 rounded-full">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    
+                    <button onclick="rewind()" class="btn-control w-12 h-12 rounded-full">
+                        <i class="fas fa-backward"></i>
+                    </button>
+                    
+                    <button onclick="togglePlay()" class="btn-play rounded-full" id="playBtn">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    
+                    <button onclick="forward()" class="btn-control w-12 h-12 rounded-full">
+                        <i class="fas fa-forward"></i>
+                    </button>
+                    
+                    <button onclick="nextTrack()" class="btn-control w-12 h-12 rounded-full">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                </div>
+
+                <!-- Secondary Controls -->
+                <div class="flex justify-center items-center gap-6 mb-6">
+                    <button onclick="toggleShuffle()" class="btn-control px-4 py-2 rounded-full text-sm" id="shuffleBtn">
+                        <i class="fas fa-random mr-1"></i>
+                        تصادفی
+                    </button>
+                    
+                    <button onclick="toggleRepeat()" class="btn-control px-4 py-2 rounded-full text-sm" id="repeatBtn">
+                        <i class="fas fa-redo mr-1"></i>
+                        تکرار
+                    </button>
+                    
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-volume-down text-white"></i>
+                        <input type="range" id="volumeBar" class="volume-bar" value="70" min="0" max="100">
+                        <i class="fas fa-volume-up text-white"></i>
+                    </div>
+                </div>
+
+                <!-- Speed Control -->
+                <div class="flex justify-center mb-6">
+                    <div class="flex items-center gap-2">
+                        <span class="text-white text-sm">سرعت:</span>
+                        <select id="speedControl" class="speed-control px-3 py-1 rounded-full text-sm">
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2x</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Theme Selector -->
+                <div class="theme-selector rounded-xl p-4 mb-6">
+                    <h4 class="text-white font-semibold mb-3 text-center">انتخاب تم</h4>
+                    <div class="flex justify-center gap-3">
+                        <div class="theme-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)" onclick="changeTheme('purple')"></div>
+                        <div class="theme-btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" onclick="changeTheme('pink')"></div>
+                        <div class="theme-btn" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" onclick="changeTheme('blue')"></div>
+                        <div class="theme-btn" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" onclick="changeTheme('green')"></div>
+                        <div class="theme-btn" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)" onclick="changeTheme('sunset')"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Playlist -->
+            <div class="player-container rounded-2xl p-6 fade-in">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-white">
+                        <i class="fas fa-list mr-2"></i>
+                        لیست پخش
+                    </h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="searchInput" placeholder="جستجو..." class="search-box px-3 py-1 rounded-full text-sm w-32">
+                        <button onclick="clearPlaylist()" class="btn-control px-3 py-1 rounded-full text-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="playlist" class="space-y-2 max-h-64 overflow-y-auto">
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fas fa-music text-4xl mb-4"></i>
+                        <p>هنوز هیچ موزیکی اضافه نشده</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="audioPlayer" preload="metadata"></audio>
+
+    <script>
+        // Global Variables
+        let currentTrack = 0;
+        let isPlaying = false;
+        let isShuffling = false;
+        let isRepeating = false;
+        let playlist = [];
+        let filteredPlaylist = [];
+        let currentTheme = 'purple';
+        let audioContext;
+        let analyzer;
+        let dataArray;
+        let backgroundIndex = 0;
+
+        // Audio Player Element
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const progressBar = document.getElementById('progressBar');
+        const volumeBar = document.getElementById('volumeBar');
+        const currentTimeSpan = document.getElementById('currentTime');
+        const durationSpan = document.getElementById('duration');
+        const trackTitle = document.getElementById('trackTitle');
+        const trackArtist = document.getElementById('trackArtist');
+        const speedControl = document.getElementById('speedControl');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            setupEventListeners();
+            changeBackground();
+            setInterval(changeBackground, 60000); // Change background every minute
+        });
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // File Input
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            
+            // Drag and Drop
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+            
+            // Audio Player Events
+            audioPlayer.addEventListener('loadedmetadata', updateDuration);
+            audioPlayer.addEventListener('timeupdate', updateProgress);
+            audioPlayer.addEventListener('ended', handleTrackEnd);
+            
+            // Progress Bar
+            progressBar.addEventListener('input', seekAudio);
+            
+            // Volume Bar
+            volumeBar.addEventListener('input', changeVolume);
+            
+            // Speed Control
+            speedControl.addEventListener('change', changeSpeed);
+            
+            // Search
+            document.getElementById('searchInput').addEventListener('input', searchPlaylist);
+            
+            // Keyboard Shortcuts
+            document.addEventListener('keydown', handleKeyboard);
+        }
+
+        // Change Background
+        function changeBackground() {
+            const randomIndex = Math.floor(Math.random() * backgrounds.length);
+            const newBackground = backgrounds[randomIndex];
+            document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('${newBackground}')`;
+        }
+
+        // File Upload Handler
+        function handleFileUpload(event) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                if (file.type.startsWith('audio/')) {
+                    const url = URL.createObjectURL(file);
+                    const track = {
+                        title: file.name.replace(/\.[^/.]+$/, ""),
+                        artist: "نامعلوم",
+                        url: url,
+                        file: file
+                    };
+                    playlist.push(track);
+                }
+            });
+            updatePlaylistDisplay();
+            showNotification('فایل‌ها با موفقیت اضافه شدند!');
+        }
+
+        // Add from URL
+        function addFromUrl() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (url) {
+                const track = {
+                    title: extractTitleFromUrl(url),
+                    artist: "نامعلوم",
+                    url: url
+                };
+                playlist.push(track);
+                updatePlaylistDisplay();
+                document.getElementById('urlInput').value = '';
+                showNotification('موزیک از لینک اضافه شد!');
+            }
+        }
+
+        // Extract Title from URL
+        function extractTitleFromUrl(url) {
+            const filename = url.split('/').pop().split('?')[0];
+            return decodeURIComponent(filename).replace(/\.[^/.]+$/, "") || 'موزیک جدید';
+        }
+
+        // Drag and Drop Handlers
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach(file => {
+                if (file.type.startsWith('audio/')) {
+                    const url = URL.createObjectURL(file);
+                    const track = {
+                        title: file.name.replace(/\.[^/.]+$/, ""),
+                        artist: "نامعلوم",
+                        url: url,
+                        file: file
+                    };
+                    playlist.push(track);
+                }
+            });
+            updatePlaylistDisplay();
+            showNotification('فایل‌ها با موفقیت اضافه شدند!');
+        }
+
+        // Update Playlist Display
+        function updatePlaylistDisplay() {
+            const playlistContainer = document.getElementById('playlist');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredPlaylist = playlist.filter(track => 
+                track.title.toLowerCase().includes(searchTerm) || 
+                track.artist.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredPlaylist.length === 0) {
+                playlistContainer.innerHTML = `
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fas fa-music text-4xl mb-4"></i>
+                        <p>هنوز هیچ موزیکی اضافه نشده</p>
+                    </div>
+                `;
+                return;
+            }
+
+            playlistContainer.innerHTML = filteredPlaylist.map((track, index) => `
+                <div class="playlist-item rounded-lg p-3 cursor-pointer ${index === currentTrack ? 'active' : ''}" 
+                     onclick="playTrack(${index})">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-music text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium">${track.title}</h4>
+                                <p class="text-gray-400 text-sm">${track.artist}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="removeTrack(${playlist.indexOf(track)}); event.stopPropagation();" 
+                                    class="text-red-400 hover:text-red-300">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Play Track
+        function playTrack(index) {
+            if (playlist.length === 0) return;
+            
+            currentTrack = index;
+            const track = playlist[currentTrack];
+            
+            audioPlayer.src = track.url;
+            audioPlayer.load();
+            
+            trackTitle.textContent = track.title;
+            trackArtist.textContent = track.artist;
+            
+            updatePlaylistDisplay();
+            
+            audioPlayer.play().then(() => {
+                isPlaying = true;
+                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                document.getElementById('trackIcon').classList.add('spinning');
+            }).catch(error => {
+                console.error('خطا در پخش:', error);
+                showNotification('خطا در پخش موزیک!');
+            });
+        }
+
+        // Toggle Play/Pause
+        function togglePlay() {
+            if (playlist.length === 0) {
+                showNotification('لطفا ابتدا موزیک اضافه کنید!');
+                return;
+            }
+
+            if (isPlaying) {
+                audioPlayer.pause();
+                isPlaying = false;
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                document.getElementById('trackIcon').classList.remove('spinning');
+            } else {
+                if (audioPlayer.src) {
+                    audioPlayer.play().then(() => {
+                        isPlaying = true;
+                        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                        document.getElementById('trackIcon').classList.add('spinning');
+                    });
+                } else {
+                    playTrack(0);
+                }
+            }
+        }
+
+        // Previous Track
+        function previousTrack() {
+            if (playlist.length === 0) return;
+            
+            currentTrack = currentTrack > 0 ? currentTrack - 1 : playlist.length - 1;
+            playTrack(currentTrack);
+        }
+
+        // Next Track
+        function nextTrack() {
+            if (playlist.length === 0) return;
+            
+            if (isShuffling) {
+                currentTrack = Math.floor(Math.random() * playlist.length);
+            } else {
+                currentTrack = currentTrack < playlist.length - 1 ? currentTrack + 1 : 0;
+            }
+            playTrack(currentTrack);
+        }
+
+        // Rewind
+        function rewind() {
+            audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 10);
+        }
+
+        // Forward
+        function forward() {
+            audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 10);
+        }
+
+        // Toggle Shuffle
+        function toggleShuffle() {
+            isShuffling = !isShuffling;
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            if (isShuffling) {
+                shuffleBtn.style.background = 'rgba(102, 126, 234, 0.3)';
+                shuffleBtn.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                showNotification('حالت تصادفی فعال شد');
+            } else {
+                shuffleBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                shuffleBtn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                showNotification('حالت تصادفی غیرفعال شد');
+            }
+        }
+
+        // Toggle Repeat
+        function toggleRepeat() {
+            isRepeating = !isRepeating;
+            const repeatBtn = document.getElementById('repeatBtn');
+            if (isRepeating) {
+                repeatBtn.style.background = 'rgba(102, 126, 234, 0.3)';
+                repeatBtn.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                showNotification('حالت تکرار فعال شد');
+            } else {
+                repeatBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                repeatBtn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                showNotification('حالت تکرار غیرفعال شد');
+            }
+        }
+
+        // Update Duration
+        function updateDuration() {
+            durationSpan.textContent = formatTime(audioPlayer.duration);
+            progressBar.max = audioPlayer.duration;
+        }
+
+        // Update Progress
+        function updateProgress() {
+            progressBar.value = audioPlayer.currentTime;
+            currentTimeSpan.textContent = formatTime(audioPlayer.currentTime);
+        }
+
+        // Seek Audio
+        function seekAudio() {
+            audioPlayer.currentTime = progressBar.value;
+        }
+
+        // Change Volume
+        function changeVolume() {
+            audioPlayer.volume = volumeBar.value / 100;
+        }
+
+        // Change Speed
+        function changeSpeed() {
+            audioPlayer.playbackRate = parseFloat(speedControl.value);
+        }
+
+        // Handle Track End
+        function handleTrackEnd() {
+            if (isRepeating) {
+                audioPlayer.currentTime = 0;
+                audioPlayer.play();
+            } else {
+                nextTrack();
+            }
+        }
+
+        // Search Playlist
+        function searchPlaylist() {
+            updatePlaylistDisplay();
+        }
+
+        // Clear Playlist
+        function clearPlaylist() {
+            if (confirm('آیا مطمئن هستید که می‌خواهید همه موزیک‌ها را حذف کنید؟')) {
+                playlist = [];
+                filteredPlaylist = [];
+                currentTrack = 0;
+                audioPlayer.pause();
+                audioPlayer.src = '';
+                isPlaying = false;
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                trackTitle.textContent = 'هیچ موزیکی انتخاب نشده';
+                trackArtist.textContent = '-';
+                updatePlaylistDisplay();
+                showNotification('لیست پخش پاک شد');
+            }
+        }
+
+        // Remove Track
+        function removeTrack(index) {
+            playlist.splice(index, 1);
+            if (index === currentTrack) {
+                if (playlist.length > 0) {
+                    currentTrack = Math.min(currentTrack, playlist.length - 1);
+                    playTrack(currentTrack);
+                } else {
+                    audioPlayer.pause();
+                    audioPlayer.src = '';
+                    isPlaying = false;
+                    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    trackTitle.textContent = 'هیچ موزیکی انتخاب نشده';
+                    trackArtist.textContent = '-';
+                }
+            } else if (index < currentTrack) {
+                currentTrack--;
+            }
+            updatePlaylistDisplay();
+        }
+
+        // Change Theme
+        function changeTheme(theme) {
+            currentTheme = theme;
+            const themes = {
+                purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                pink: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                blue: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                green: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                sunset: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+            };
+            
+            document.querySelector('.btn-play').style.background = themes[theme];
+            document.querySelectorAll('.visualizer-bar').forEach(bar => {
+                bar.style.background = themes[theme];
+            });
+            
+            saveSettings();
+            showNotification('تم تغییر کرد!');
+        }
+
+        // Format Time
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Show Notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            notificationText.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Keyboard Shortcuts
+        function handleKeyboard(e) {
+            if (e.target.tagName === 'INPUT') return;
+            
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    togglePlay();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    rewind();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    forward();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    volumeBar.value = Math.min(100, parseInt(volumeBar.value) + 10);
+                    changeVolume();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    volumeBar.value = Math.max(0, parseInt(volumeBar.value) - 10);
+                    changeVolume();
+                    break;
+            }
+        }
+
+        // Save Settings
+        function saveSettings() {
+            const settings = {
+                volume: volumeBar.value,
+                speed: speedControl.value,
+                theme: currentTheme,
+                isShuffling: isShuffling,
+                isRepeating: isRepeating
+            };
+            localStorage.setItem('musicPlayerSettings', JSON.stringify(settings));
+        }
+
+        // Load Settings
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('musicPlayerSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                volumeBar.value = settings.volume || 70;
+                speedControl.value = settings.speed || 1;
+                currentTheme = settings.theme || 'purple';
+                isShuffling = settings.isShuffling || false;
+                isRepeating = settings.isRepeating || false;
+                
+                changeVolume();
+                changeSpeed();
+                changeTheme(currentTheme);
+                
+                if (isShuffling) {
+                    document.getElementById('shuffleBtn').style.background = 'rgba(102, 126, 234, 0.3)';
+                    document.getElementById('shuffleBtn').style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                }
+                
+                if (isRepeating) {
+                    document.getElementById('repeatBtn').style.background = 'rgba(102, 126, 234, 0.3)';
+                    document.getElementById('repeatBtn').style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                }
+            }
+        }
+
+        // Save settings on page unload
+        window.addEventListener('beforeunload', saveSettings);
+    </script>
+</body>
+</html>
